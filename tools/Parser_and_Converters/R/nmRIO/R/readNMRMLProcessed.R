@@ -8,27 +8,43 @@
 #' @return A vector with the numeric values of the processed data
 #' @author Steffen Neumann
 #' @examples
-#' # TODO: re-enable once we have an example file with preprocessed data
 #' # length(readNMRMLProcessed(system.file("examples/HMDB00005.nmrML", package = "nmRIO")))
 #' @export
 
 readNMRMLProcessed <- function (filename) {
     tree <- xmlTreeParse(filename)
     root <- xmlRoot(tree)
+
+    ## Currently reads only the FIRST spectrumDataArray from file:
+    spectrumData <- xmlElementsByTagName(root, "spectrumDataArray",
+                                    recursive = TRUE)[["spectrumList.spectrum1D.spectrumDataArray"]]
     
     ## Extract base64encoded data 
-    b64s <- sapply (xmlElementsByTagName(root, "binary",
-                                         recursive = TRUE), xmlValue)
+    b64s <- gsub("\n", "", xmlValue(spectrumData))
 
-    intensities <- base64decode(b64s[2], "double", size=8)
-        
+    byteFormat <- xmlAttrs(spectrumData)["byteFormat"]
+    what <- switch(byteFormat,
+                   float64 = "double", ## This is what I found in Sample_21.nmrML / spectrumDataArray
+                   Complex128 = "double", # that's because complex128 is misleading
+                   Complex64 = "double",
+                   Integer32 = "integer",
+                   Complex32int = "integer",
+                   "class java.lang.Integer" = "integer",
+                   Complex64int = "currentlynotsupported")
+    
+    compression <- ifelse(xmlAttrs(spectrumData)["compressed"]=="true", "gzip", "none")
+    
+    dproc <- nmRIO:::binaryArrayDecode(b64s,
+                              what=what, compression=compression)
+    intensities <- dproc[c(FALSE, TRUE)]
+    
     ## Get required parameters from nmrML
     irradiationFrequency <- as.double(xmlAttrs(xmlElementsByTagName(root, "irradiationFrequency", recursive = TRUE)[[1]])["value"])
 
     sweepWidth <- as.double(xmlAttrs(xmlElementsByTagName(root, "sweepWidth", recursive = TRUE)[[1]])["value"])
 
-    numberOfDataPoints <- as.integer(xmlAttrs(xmlElementsByTagName(root, "DirectDimensionParameterSet", recursive = TRUE)[[1]])["numberOfDataPoints"])
-
+    numberOfDataPoints <- as.integer(xmlAttrs(xmlElementsByTagName(root, "DirectDimensionParameterSet", recursive = TRUE)[[1]])["numberOfDataPoints"])    
+    
     ## delayTime <- 1.0
     ## ppmOffset <- delayTime / 599.4094446,
     
@@ -41,15 +57,15 @@ readNMRMLProcessed <- function (filename) {
     datamatrix
 }
 
+
+
 if (FALSE) {
     ## This section contains test snippets during development
     library(nmRIO)
-    library(XML)
-    library(caTools)
     
-    files <- list.files("../../../../../examples/IPB_HopExample/nmrMLs/",
-                        full.names=TRUE)
+    filename <- "inst/examples/Sample_21.nmrML"
+    d <- readNMRMLProcessed(filename)
 
-    filename <- files[1]
+    read
     
 }
