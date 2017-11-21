@@ -21,7 +21,7 @@ GHP_CV = ${GHP}/cv/${VERSION}
 ## Conversion from nmrCV to nmrML.obo
 ## using https://github.com/owlcollab/owltools
 # OWLTOOL=/home/sneumann/src/owltools/OWLTools-Runner/bin/owltools
-OWLTOOL=./owltools
+OWLTOOL=owltools
 
 # The fallback if no OpenMS is available:
 XMLVALIDATOR=/bin/true

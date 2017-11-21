@@ -5,5 +5,8 @@ install:
   - wget http://build.berkeleybop.org/userContent/owltools/owltools
   - chmod +x owltools  
 
+env:
+  - PATH=$PATH:$HOME
+  
 script:
-  - make ontologies/nmrCV.obo
+  - make -W ontologies/nmrCV.owl ontologies/nmrCV.obo
