@@ -1,12 +1,15 @@
+language: java
+
 apt_packages:
   - make
+  - topp
 
 install: 
   - wget http://build.berkeleybop.org/userContent/owltools/owltools
   - chmod +x owltools  
 
 env:
-  - PATH=$PATH:$HOME
+  - PATH=$PATH:.
   
 script:
   - make -W ontologies/nmrCV.owl ontologies/nmrCV.obo
