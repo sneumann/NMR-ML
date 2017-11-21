@@ -1,0 +1,9 @@
+apt_packages:
+  - make
+
+install: 
+  - wget http://build.berkeleybop.org/userContent/owltools/owltools
+  - chmod +x owltools  
+
+script:
+  - make ontologies/nmrCV.obo
